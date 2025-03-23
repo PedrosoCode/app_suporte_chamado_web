@@ -1,37 +1,73 @@
 <script setup lang="ts">
-// import { useRouter } from 'vue-router'
-// const router = useRouter()
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+const sRemetenteAtual: string = String(route.params.remetente ?? '');
+const sAcesso: string = String(route.params.acesso ?? '');
+
+interface interMessage {
+  sRemetente: string
+  sTexto: string
+  dDataEnvio: Date
+}
+
+const arrMensagem = ref<interMessage[]>([])
+const sNovaMensagem = ref('')
+const ws = ref<WebSocket | null>(null)
+
+const setupWebSocket = () => {
+  ws.value = new WebSocket(`ws://localhost:3000/chat/${sAcesso}`)
+
+  ws.value.onmessage = (event) => {
+    const jsMensagem: interMessage = JSON.parse(event.data)
+    arrMensagem.value.push(jsMensagem)
+  }
+
+  ws.value.onerror = (error) => {
+    console.error('WebSocket error:', error)
+  }
+}
+
+const EnviarMensagem = () => {
+  if (!sNovaMensagem.value.trim() || !ws.value) return
+
+  const jsMensagem: interMessage = {
+    sRemetente: sRemetenteAtual,
+    sTexto: sNovaMensagem.value,
+    dDataEnvio: new Date(),
+  }
+
+  ws.value.send(JSON.stringify(jsMensagem))
+  sNovaMensagem.value = ''
+}
+
+onMounted(() => {
+  setupWebSocket()
+})
+
+onUnmounted(() => {
+  if (ws.value) {
+    ws.value.close()
+  }
+})
 </script>
+
 <template>
   <div class="container my-4">
-    <h4>O acesso do chamado é:</h4>
+    <h4>O acesso do chamado é: {{ sAcesso }}</h4>
     <div class="row my-2 mt-5">
       <div class="col-md-12">
-        <!-- Container do Chat -->
         <div class="border rounded overflow-auto" style="height: 60vh">
-          <!-- Mensagem do Usuário (alinhada à direita) -->
-          <div class="row">
-            <div class="col-md-10 ms-auto m-2"> <!-- ms-auto empurra para direita -->
-              <div class="card border-success mb-3">
-                <div class="card-header">Você</div>
-                <div class="card-body text-success">
-                  <p class="card-text">
-                    Olá estou precisando de suporte
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mensagem do Suporte (alinhada à esquerda) -->
-          <div class="row">
-            <div class="col-md-10 m-2"> <!-- Sem ms-auto -->
-              <div class="card border-primary mb-3">
-                <div class="card-header">Suporte</div>
-                <div class="card-body text-primary">
-                  <p class="card-text">
-                    Olá, como posso ajudar?
-                  </p>
+          <!-- Mensagens dinâmicas -->
+          <div v-for="(chatMensagem, index) in arrMensagem" :key="index" class="row">
+            <div :class="['col-md-10 m-2', chatMensagem.sRemetente === sRemetenteAtual ? '' : 'ms-auto']">
+              <div :class="['card mb-3', chatMensagem.sRemetente === sRemetenteAtual ? 'border-primary' : 'border-success']">
+                <div class="card-header">{{ chatMensagem.sRemetente }}</div>
+                <div class="card-body" :class="chatMensagem.sRemetente === sRemetenteAtual ? 'text-primary' : 'text-success'">
+                  <p class="card-text">{{ chatMensagem.sTexto }}</p>
+                  <small class="text-muted">{{ chatMensagem.dDataEnvio.toLocaleTimeString() }}</small>
                 </div>
               </div>
             </div>
@@ -42,10 +78,21 @@
 
     <div class="row my-5 align-items-center">
       <div class="col-md-10">
-        <input type="text" class="form-control" placeholder="digite a mensagem...">
+        <input
+          v-model="sNovaMensagem"
+          type="text"
+          class="form-control"
+          placeholder="digite a mensagem..."
+          @keyup.enter="EnviarMensagem"
+        >
       </div>
       <div class="col-md-2 d-flex gap-2">
-        <button class="btn btn-primary flex-fill">Enviar</button>
+        <button
+          class="btn btn-primary flex-fill"
+          @click="EnviarMensagem"
+        >
+          Enviar
+        </button>
         <button class="btn btn-secondary flex-fill">Anexo</button>
       </div>
     </div>

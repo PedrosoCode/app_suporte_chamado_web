@@ -11,12 +11,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/nova_sessao',
+      path: '/nova_sessao/acesso/:acesso/remetente/:remetente',
       name: 'nova_sessao',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/ChatView.vue'),
+      component: ChatView,
     },
   ],
 })
