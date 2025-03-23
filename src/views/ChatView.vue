@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -54,6 +54,8 @@ const EnviarMensagem = () => {
     dDataEnvio: new Date(),
   }
 
+  // Adiciona a mensagem localmente antes de enviar
+  arrMensagem.value.push(jsMensagem)
   ws.value.send(JSON.stringify(jsMensagem))
   sNovaMensagem.value = ''
 }
@@ -67,6 +69,25 @@ onUnmounted(() => {
     ws.value.close()
   }
 })
+
+const chatContainer = ref<HTMLElement | null>(null)
+
+// Watch para detectar mudanças nas mensagens
+watch(
+  () => arrMensagem.value.length,
+  async () => {
+    await nextTick() // Espera a atualização do DOM
+    if (chatContainer.value) {
+      // Scroll suave para o final
+      chatContainer.value.scrollTo({
+        top: chatContainer.value.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  },
+  { flush: 'post' } // Executa após a atualização do DOM
+)
+
 </script>
 
 <template>
@@ -74,10 +95,10 @@ onUnmounted(() => {
     <h4>O acesso do chamado é: {{ sAcesso }}</h4>
     <div class="row my-2 mt-5">
       <div class="col-md-12">
-        <div class="border rounded overflow-auto" style="height: 60vh">
+        <div ref="chatContainer" class="border rounded overflow-auto" style="height: 60vh">
           <!-- Mensagens dinâmicas -->
           <div v-for="(chatMensagem, index) in arrMensagem" :key="index" class="row">
-            <div :class="['col-md-10 m-2', chatMensagem.sRemetente === sRemetenteAtual ? '' : 'ms-auto']">
+            <div :class="['col-md-10 m-2', chatMensagem.sRemetente !== sRemetenteAtual ? '' : 'ms-auto']">
               <div :class="['card mb-3', chatMensagem.sRemetente === sRemetenteAtual ? 'border-primary' : 'border-success']">
                 <div class="card-header">{{ chatMensagem.sRemetente }}</div>
                 <div class="card-body" :class="chatMensagem.sRemetente === sRemetenteAtual ? 'text-primary' : 'text-success'">
