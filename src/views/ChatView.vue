@@ -20,10 +20,25 @@ const ws = ref<WebSocket | null>(null)
 const setupWebSocket = () => {
   ws.value = new WebSocket(`ws://localhost:3000/chat/${sAcesso}`)
 
-  ws.value.onmessage = (event) => {
-    const jsMensagem: interMessage = JSON.parse(event.data)
-    arrMensagem.value.push(jsMensagem)
+  ws.value.onmessage = async (event) => {
+  try {
+    const rawData = event.data instanceof Blob
+      ? await event.data.text()
+      : event.data;
+
+    const dadosBrutos = JSON.parse(rawData);
+
+    // Converter a string para Date
+    const jsMensagem: interMessage = {
+      ...dadosBrutos,
+      dDataEnvio: new Date(dadosBrutos.dDataEnvio)
+    };
+
+    arrMensagem.value.push(jsMensagem);
+  } catch (error) {
+    console.error('Erro ao processar mensagem:', error);
   }
+}
 
   ws.value.onerror = (error) => {
     console.error('WebSocket error:', error)
@@ -67,7 +82,8 @@ onUnmounted(() => {
                 <div class="card-header">{{ chatMensagem.sRemetente }}</div>
                 <div class="card-body" :class="chatMensagem.sRemetente === sRemetenteAtual ? 'text-primary' : 'text-success'">
                   <p class="card-text">{{ chatMensagem.sTexto }}</p>
-                  <small class="text-muted">{{ chatMensagem.dDataEnvio.toLocaleTimeString() }}</small>
+
+                  <small class="text-muted"> {{ chatMensagem.dDataEnvio?.toLocaleTimeString() ?? 'Horário inválido' }}</small>
                 </div>
               </div>
             </div>
