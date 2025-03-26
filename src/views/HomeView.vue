@@ -19,6 +19,12 @@ async function NovaSessao() {
   })
 }
 
+async function HubSuporte() {
+  router.push({
+    name: 'suporte_hub',
+  })
+}
+
 </script>
 
 <!-- <template>
@@ -64,6 +70,22 @@ async function NovaSessao() {
                   <button class="btn btn-outline-light w-100 py-2" type="submit">
                     Acessar Sessão
                   </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- card do hub -->
+        <div class="col-12 col-md-8 col-lg-6">
+          <div class="card bg-dark border-secondary h-100"> <!-- Added h-100 -->
+            <div class="card-body p-4 d-flex flex-column">
+              <form class="d-flex flex-column gap-3 flex-grow-1">
+
+                <div class="mt-auto"> <!-- Push button to bottom -->
+                  <button class="btn btn-primary w-100 py-2" type="submit" @click="HubSuporte()">
+                  suportes em andamento
+                </button>
                 </div>
               </form>
             </div>
