@@ -1,6 +1,41 @@
 <script setup lang="ts">
-// import { useRouter } from 'vue-router'
-// const router = useRouter()
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+import axios from  'axios'
+import { onMounted } from 'vue'
+
+const router = useRouter()
+
+interface interChamado {
+  nCodigoEmpresa: number,
+  nCodigoParceiroNegocio: number,
+  sNomeFantasiaEmpresa: string
+  sUsuarioAbertura: string,
+  sTituloChamado: string,
+  sAcesso: string,
+  sDescicaoChamado: string
+}
+
+const dadoChamados = ref<interChamado[]>([])
+
+async function getListaParceiros() {
+  try {
+    const response = await axios.post(
+      import.meta.env.VITE_DEFAULT_API_LINK + '/hub/listagem'
+    )
+
+    dadoChamados.value = response.data
+    console.log('Dados recebidos:', dadoChamados.value)
+
+  } catch (error) {
+    console.error('Erro ao carregar dos chamados:', error)
+  }
+}
+
+onMounted(() => {
+  getListaParceiros()
+})
+
 </script>
 <template>
   <div>
