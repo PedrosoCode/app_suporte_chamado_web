@@ -16,19 +16,53 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
     },
     {
-      path: '/nova_sessao/acesso/:acesso/remetente/:remetente',
+      path: '/nova_sessao/acesso/:acesso/remetente/:remetente/empresa/:empresa',
       name: 'nova_sessao',
       component: ChatView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/suporte_hub',
       name: 'suporte_hub',
       component: SuporteHub,
+      meta: { requiresAuth: true },
     },
   ],
 })
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('jwtToken')
+
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (!token) {
+      next({ name: 'login' })
+    } else {
+      const isExpired = checkTokenExpiration(token)
+      if (isExpired) {
+        localStorage.removeItem('jwtToken')
+        next({ name: 'login' })
+      } else {
+        next()
+      }
+    }
+  } else {
+    next()
+  }
+})
+
+function checkTokenExpiration(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const exp = payload.exp * 1000
+    return Date.now() > exp
+  } catch (error) {
+    return true
+  }
+}
+
 
 
 
