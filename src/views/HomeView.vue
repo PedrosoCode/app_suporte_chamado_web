@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue';
-import { jwtDecode } from "jwt-decode";
+import { onMounted, ref, reactive } from 'vue'
+import { jwtDecode } from 'jwt-decode'
+import axios from 'axios'
+
 const router = useRouter()
 
 interface DecodedToken {
@@ -9,46 +11,67 @@ interface DecodedToken {
   jwt_nCodigoUsuario: number
 }
 
-onMounted(() => {
+const initAcesso: sAcessoChamado = {
+  descricao: ''
+}
+
+interface sAcessoChamado {
+  descricao: string
+}
+
+const sAcessoValues = reactive<sAcessoChamado>({ ...initAcesso })
+
+const decodedToken = ref<DecodedToken | null>(null)
+const token = localStorage.getItem('jwtToken')
+
+// Decodifica o token somente se existir
+if (token) {
   try {
-    const token = localStorage.getItem('jwtToken')
-
-    if (!token) {
-      throw new Error('Token não encontrado no localStorage')
-    }
-
     decodedToken.value = jwtDecode<DecodedToken>(token)
   } catch (error) {
     console.error('Erro ao decodificar token:', error)
-    router.push({ name: 'login' })
   }
-})
-
-const decodedToken = ref<DecodedToken | null>(null)
+} else {
+  console.warn('Token JWT não encontrado no localStorage')
+}
 
 async function NovaSessao() {
-  if (!decodedToken.value) {
-    console.error('Token não foi decodificado corretamente')
+  if (!decodedToken.value || !token) {
+    console.error('Token não foi decodificado corretamente ou está ausente')
     return
+  }
+
+  try {
+    const response = await axios.post(
+      import.meta.env.VITE_DEFAULT_API_LINK + '/chat/acesso',
+      { nCodigoParceiro: decodedToken.value.jwt_nCodigoUsuario,
+        sDescricao: sAcessoValues.descricao
+       },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    sAcessoValues.descricao = response.data.descricao
+  } catch (error) {
+    console.error('Erro ao iniciar nova sessão:', error)
   }
 
   router.push({
     name: 'nova_sessao',
     params: {
-      empresa: decodedToken.value.jwt_nCodigoEmpresa,
-      remetente: decodedToken.value.jwt_nCodigoUsuario,
-      acesso: 'suporte_tipo1',
+      empresa: decodedToken.value.jwt_nCodigoEmpresa.toString(),
+      remetente: decodedToken.value.jwt_nCodigoUsuario.toString(),
+      acesso: sAcessoValues.descricao
     }
   })
 }
 
 async function HubSuporte() {
   router.push({
-    name: 'suporte_hub',
+    name: 'suporte_hub'
   })
 }
-
 </script>
+
 
 <!-- <template>
   <div class="container border border-secondary">
@@ -90,13 +113,14 @@ async function HubSuporte() {
                 <div>
                   <div class="mb-3">
                     <label class="form-label text-primary fw-bold">Insira o título do chamado</label>
-                    <input type="text" class="form-control"  placeholder="Necessito de ajuda com...">
+                    <input v-model="sAcessoValues.descricao" type="text" class="form-control" placeholder="Necessito de ajuda com...">
                   </div>
                 </div>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
-                <button  type="submit" class="btn btn-success"  data-bs-dismiss="modal" @click="NovaSessao()">Iniciar</button>
+                <button type="submit" class="btn btn-success" data-bs-dismiss="modal"
+                  @click="NovaSessao()">Iniciar</button>
               </div>
             </div>
           </div>
