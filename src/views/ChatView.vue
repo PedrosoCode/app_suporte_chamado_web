@@ -2,11 +2,15 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { io, type Socket } from 'socket.io-client'
+import { jwtDecode } from 'jwt-decode'
 
 const route = useRoute()
 
 const sRemetenteAtual: string = String(route.params.remetente ?? '')
 const sAcesso: string = String(route.params.acesso ?? '')
+
+const token : any = localStorage.getItem('jwtToken')
+const decodedToken = jwtDecode(token)
 
 interface interMessage {
   sRemetente: string
@@ -19,8 +23,10 @@ const sNovaMensagem = ref('')
 const socket = ref<Socket | null>(null)
 
 const setupSocketIO = () => {
-  // Conecta ao namespace '/chat' e passa o acesso como query
   socket.value = io(`${import.meta.env.VITE_DEFAULT_API_LINK}/chat`, {
+    auth: {
+      token: `Bearer ${token}`
+    },
     query: {
       acesso: sAcesso
     }
