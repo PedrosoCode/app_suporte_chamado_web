@@ -78,7 +78,7 @@ async function HubSuporte() {
 
 onMounted (() => {
   socket.on("connection", () => {
-  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+  console.log(socket.id);
 });
 })
 

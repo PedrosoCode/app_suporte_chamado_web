@@ -10,10 +10,10 @@ const sRemetenteAtual: string = String(route.params.remetente ?? '')
 const sAcesso: string = String(route.params.acesso ?? '')
 
 const token : any = localStorage.getItem('jwtToken')
-const decodedToken = jwtDecode(token)
+const decodedToken : any = jwtDecode(token)
 
 interface interMessage {
-  sRemetente: string
+  nRemetente: number
   sTexto: string
   dDataEnvio: Date
 }
@@ -45,9 +45,11 @@ const EnviarMensagem = () => {
   if (!sNovaMensagem.value.trim() || !socket.value) return
 
   const jsMensagem: interMessage = {
-    sRemetente: sRemetenteAtual,
+    nRemetente: parseInt(sRemetenteAtual),
     sTexto: sNovaMensagem.value,
     dDataEnvio: new Date(),
+    nCodigoChat: parseInt(sAcesso),
+    nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa
   }
 
   socket.value.emit('chat:enviar', jsMensagem)
