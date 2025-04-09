@@ -3,8 +3,13 @@ import { useRouter } from 'vue-router'
 import { onMounted, ref, reactive } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
+import { io } from "socket.io-client";
 
 const router = useRouter()
+
+const socket = io(import.meta.env.VITE_DEFAULT_API_LINK);
+
+
 
 interface DecodedToken {
   jwt_nCodigoEmpresa: number
@@ -70,6 +75,13 @@ async function HubSuporte() {
     name: 'suporte_hub'
   })
 }
+
+onMounted (() => {
+  socket.on("connection", () => {
+  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+});
+})
+
 </script>
 
 

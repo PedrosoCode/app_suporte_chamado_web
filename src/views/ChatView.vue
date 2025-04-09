@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router';
+import { useRoute } from 'vue-router'
+import { io, type Socket } from 'socket.io-client'
 
-const route = useRoute();
+const route = useRoute()
 
-const sRemetenteAtual: string = String(route.params.remetente ?? '');
-const sAcesso: string = String(route.params.acesso ?? '');
+const sRemetenteAtual: string = String(route.params.remetente ?? '')
+const sAcesso: string = String(route.params.acesso ?? '')
 
 interface interMessage {
   sRemetente: string
@@ -15,38 +16,27 @@ interface interMessage {
 
 const arrMensagem = ref<interMessage[]>([])
 const sNovaMensagem = ref('')
-const ws = ref<WebSocket | null>(null)
+const socket = ref<Socket | null>(null)
 
-const setupWebSocket = () => {
-  ws.value = new WebSocket(`ws://localhost:3000/chat/${sAcesso}`)
+const setupSocketIO = () => {
+  // Conecta ao namespace '/chat' e passa o acesso como query
+  socket.value = io(`${import.meta.env.VITE_DEFAULT_API_LINK}/chat`, {
+    query: {
+      acesso: sAcesso
+    }
+  });
 
-  ws.value.onmessage = async (event) => {
-  try {
-    const rawData = event.data instanceof Blob
-      ? await event.data.text()
-      : event.data;
-
-    const dadosBrutos = JSON.parse(rawData);
-
-    // Converter a string para Date
-    const jsMensagem: interMessage = {
+  // Ouvinte para mensagens do chat específico
+  socket.value.on('chat:receber', (dadosBrutos: interMessage) => {
+    arrMensagem.value.push({
       ...dadosBrutos,
       dDataEnvio: new Date(dadosBrutos.dDataEnvio)
-    };
-
-    arrMensagem.value.push(jsMensagem);
-  } catch (error) {
-    console.error('Erro ao processar mensagem:', error);
-  }
-}
-
-  ws.value.onerror = (error) => {
-    console.error('WebSocket error:', error)
-  }
+    });
+  });
 }
 
 const EnviarMensagem = () => {
-  if (!sNovaMensagem.value.trim() || !ws.value) return
+  if (!sNovaMensagem.value.trim() || !socket.value) return
 
   const jsMensagem: interMessage = {
     sRemetente: sRemetenteAtual,
@@ -54,19 +44,17 @@ const EnviarMensagem = () => {
     dDataEnvio: new Date(),
   }
 
-  // Adiciona a mensagem localmente antes de enviar
-  arrMensagem.value.push(jsMensagem)
-  ws.value.send(JSON.stringify(jsMensagem))
+  socket.value.emit('chat:enviar', jsMensagem)
   sNovaMensagem.value = ''
 }
 
 onMounted(() => {
-  setupWebSocket()
+  setupSocketIO()
 })
 
 onUnmounted(() => {
-  if (ws.value) {
-    ws.value.close()
+  if (socket.value) {
+    socket.value.disconnect()
   }
 })
 
