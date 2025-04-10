@@ -19,6 +19,7 @@ interface interMessage {
   dDataEnvio: Date
   nCodigoChat: number
   nCodigoEmpresa: number
+  sNomeUsuario : string
 }
 
 const arrMensagem = ref<interMessage[]>([])
@@ -121,11 +122,11 @@ watch(
           <div v-for="(chatMensagem, index) in arrMensagem" :key="index" class="row">
             <div :class="['col-md-10 m-2', chatMensagem.nRemetente !== nRemetenteAtual ? '' : 'ms-auto']">
               <div :class="['card mb-3', chatMensagem.nRemetente === nRemetenteAtual ? 'border-primary' : 'border-success']">
-                <div class="card-header">{{ chatMensagem.nRemetente }}</div>
+                <div class="card-header">{{ chatMensagem.sNomeUsuario }}</div>
                 <div class="card-body" :class="chatMensagem.nRemetente === nRemetenteAtual ? 'text-primary' : 'text-success'">
                   <p class="card-text">{{ chatMensagem.sTexto }}</p>
 
-                   <!-- <small class="text-muted"> {{ chatMensagem.dDataEnvio?.toLocaleTimeString() ?? 'Horário inválido' }}</small> -->
+                   <small class="text-muted"> {{ chatMensagem.dDataEnvio.toDateString ?? 'Horário inválido' }}</small>
                 </div>
               </div>
             </div>
