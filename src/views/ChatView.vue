@@ -3,10 +3,11 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { io, type Socket } from 'socket.io-client'
 import { jwtDecode } from 'jwt-decode'
+import axios from 'axios'
 
 const route = useRoute()
 
-const sRemetenteAtual: string = String(route.params.remetente ?? '')
+const nRemetenteAtual : number = parseInt(route.params.remetente)
 const sAcesso: string = String(route.params.acesso ?? '')
 
 const token : any = localStorage.getItem('jwtToken')
@@ -16,6 +17,8 @@ interface interMessage {
   nRemetente: number
   sTexto: string
   dDataEnvio: Date
+  nCodigoChat: number
+  nCodigoEmpresa: number
 }
 
 const arrMensagem = ref<interMessage[]>([])
@@ -45,7 +48,7 @@ const EnviarMensagem = () => {
   if (!sNovaMensagem.value.trim() || !socket.value) return
 
   const jsMensagem: interMessage = {
-    nRemetente: parseInt(sRemetenteAtual),
+    nRemetente: parseInt(nRemetenteAtual),
     sTexto: sNovaMensagem.value,
     dDataEnvio: new Date(),
     nCodigoChat: parseInt(sAcesso),
@@ -56,8 +59,30 @@ const EnviarMensagem = () => {
   sNovaMensagem.value = ''
 }
 
+async function LoadMensagens() {
+
+  try {
+
+    const response = await axios.post(
+      import.meta.env.VITE_DEFAULT_API_LINK + '/chat/carregar',
+      { nCodigoChat: parseInt(sAcesso),
+        nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa
+       },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    arrMensagem.value = response.data
+    console.log('Dados recebidos:', arrMensagem.value)
+
+  } catch (error) {
+    console.error('Erro ao carregar mensagens inicialmente:', error)
+  }
+
+}
+
 onMounted(() => {
   setupSocketIO()
+  LoadMensagens()
 })
 
 onUnmounted(() => {
@@ -94,13 +119,13 @@ watch(
         <div ref="chatContainer" class="border rounded overflow-auto" style="height: 60vh">
           <!-- Mensagens dinâmicas -->
           <div v-for="(chatMensagem, index) in arrMensagem" :key="index" class="row">
-            <div :class="['col-md-10 m-2', chatMensagem.sRemetente !== sRemetenteAtual ? '' : 'ms-auto']">
-              <div :class="['card mb-3', chatMensagem.sRemetente === sRemetenteAtual ? 'border-primary' : 'border-success']">
-                <div class="card-header">{{ chatMensagem.sRemetente }}</div>
-                <div class="card-body" :class="chatMensagem.sRemetente === sRemetenteAtual ? 'text-primary' : 'text-success'">
+            <div :class="['col-md-10 m-2', chatMensagem.nRemetente !== nRemetenteAtual ? '' : 'ms-auto']">
+              <div :class="['card mb-3', chatMensagem.nRemetente === nRemetenteAtual ? 'border-primary' : 'border-success']">
+                <div class="card-header">{{ chatMensagem.nRemetente }}</div>
+                <div class="card-body" :class="chatMensagem.nRemetente === nRemetenteAtual ? 'text-primary' : 'text-success'">
                   <p class="card-text">{{ chatMensagem.sTexto }}</p>
 
-                  <small class="text-muted"> {{ chatMensagem.dDataEnvio?.toLocaleTimeString() ?? 'Horário inválido' }}</small>
+                   <!-- <small class="text-muted"> {{ chatMensagem.dDataEnvio?.toLocaleTimeString() ?? 'Horário inválido' }}</small> -->
                 </div>
               </div>
             </div>
