@@ -5,9 +5,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-
-import './styles/css/bootstrap.min.css'
-import './styles/js/bootstrap.bundle.min.js'
+import '../main.css'
 
 const app = createApp(App)
 
