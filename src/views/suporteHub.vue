@@ -38,54 +38,37 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div>
-    <div class="container-fluid my-5">
-      <h1 class="ms-3">HUB DE SUPORTE</h1>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="my-5">
-            <!-- Card de suportes -->
-            <div class="mx-2 my-5" v-for="suportes in dadoChamados" :key="suportes.nCodigoAcesso">
-              <div class="col-md-12">
-                <div class="row g-0">
-                  <!-- Remover espaçamento entre colunas -->
-                  <!-- Coluna principal -->
-                  <div class="col-md-10 h-100">
-                    <!-- Altura total -->
-                    <div class="card h-100 border-top-0 border-end-0 rounded-start">
-                      <!-- Altura total e bordas ajustadas -->
-                      <div class="card-header text-start border-end border-top rounded-top">
-                        {{ suportes.sNomeEmpresa }}
-                      </div>
-                      <div class="card-body border-top border-end">
-                        <blockquote class="blockquote mb-0">
-                          <p>
-                            {{ suportes.sUsuarioAbertura }} - {{ suportes.sAssuntoChamado }} -
-                            {{ suportes.nCodigoAcesso }}
-                          </p>
-                          <footer class="blockquote-footer">
-                            Breve descrição do que está acontecendo no sistema
-                          </footer>
-                        </blockquote>
-                      </div>
-                    </div>
-                  </div>
+  <div class="bg-slate-100 min-h-screen py-10 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-3xl font-bold text-emerald-700 mb-8">HUB DE SUPORTE</h1>
 
-                  <!-- Coluna de prioridade -->
-                  <div class="col-md-2 h-100 d-flex align-items-center">
-                    <!-- Centralizar verticalmente -->
-                    <div class="w-100 text-center">
-                      <!-- Largura total e alinhamento central -->
-                      <div class="row mb-2">
-                        <div class="col-12">N° prioridade</div>
-                      </div>
-                      <div class="row">
-                        <div class="col-12 display-4">15</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <!-- Lista de suportes -->
+      <div class="space-y-6">
+        <div
+          v-for="suportes in dadoChamados"
+          :key="suportes.nCodigoAcesso"
+          class="flex flex-col md:flex-row bg-white rounded-2xl shadow-md overflow-hidden"
+        >
+          <!-- Card principal -->
+          <div class="md:w-10/12 border-r">
+            <div class="border-b px-6 py-4 bg-emerald-100 text-emerald-800 font-semibold">
+              {{ suportes.sNomeEmpresa }}
+            </div>
+            <div class="px-6 py-4 space-y-2">
+              <p class="text-gray-800 font-medium">
+                {{ suportes.sUsuarioAbertura }} - {{ suportes.sAssuntoChamado }} - {{ suportes.nCodigoAcesso }}
+              </p>
+              <footer class="text-sm text-gray-500">
+                Breve descrição do que está acontecendo no sistema
+              </footer>
+            </div>
+          </div>
+
+          <!-- Prioridade -->
+          <div class="md:w-2/12 flex items-center justify-center bg-gray-50 p-4">
+            <div class="text-center">
+              <div class="text-sm text-gray-600 mb-1">N° Prioridade</div>
+              <div class="text-4xl font-bold text-emerald-600">15</div>
             </div>
           </div>
         </div>
