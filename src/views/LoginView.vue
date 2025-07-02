@@ -91,7 +91,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="bg-slate-100 min-h-screen flex flex-col">
+  <div class="bg-slate-100 min-h-screen">
+  <main class="flex flex-col mx-5">
     <!-- <MainNavbar /> -->
 
     <!-- Container centralizado -->
@@ -183,4 +184,5 @@ onMounted(() => {
       </div>
     </div>
   </main>
+  </div>
 </template>

@@ -53,7 +53,7 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-function checkTokenExpiration(token) {
+function checkTokenExpiration(token : any) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     const exp = payload.exp * 1000

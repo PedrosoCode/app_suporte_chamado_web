@@ -29,7 +29,6 @@ const sAcessoValues = reactive<sAcessoChamado>({ ...initAcesso })
 const decodedToken = ref<DecodedToken | null>(null)
 const token = localStorage.getItem('jwtToken')
 
-// Decodifica o token somente se existir
 if (token) {
   try {
     decodedToken.value = jwtDecode<DecodedToken>(token)
@@ -83,97 +82,89 @@ onMounted (() => {
 })
 
 </script>
-
-
-<!-- <template>
-  <div class="container border border-secondary">
-    <div class="row px-3 py-1">
-      <div class="col-md-2">a</div>
-      <div class="col-md-4">a</div>
-    </div>
-  </div>
-</template> -->
 <template>
-  <div class="min-vh-100 bg-dark text-white p-4">
-    <div class="container">
-      <div class="row justify-content-center g-4">
-        <!-- Primeiro Card -->
-        <div class="col-12 col-md-8 col-lg-6">
-          <div class="card bg-dark border-secondary h-100"> <!-- Added h-100 -->
-            <div class="card-body p-4 d-flex flex-column">
-              <h5 class="card-title mb-4 text-primary">Solicitar nova sessão</h5>
-              <div class="mt-auto"> <!-- Push button to bottom -->
-                <button class="btn btn-primary w-100 py-2" type="submit" data-bs-toggle="modal"
-                  data-bs-target="#meuModal">
-                  Solicitar Suporte
-                </button>
-              </div>
-            </div>
+  <div class="bg-slate-100 min-h-screen py-10 px-4">
+    <main class="max-w-2xl mx-auto space-y-8">
+      
+      <!-- Card: Nova Sessão -->
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-emerald-600">Solicitar nova sessão</h2>
+        <button
+          class="w-full py-2 px-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition"
+          data-bs-toggle="modal"
+          data-bs-target="#modalNovaSessao"
+        >
+          Solicitar Suporte
+        </button>
+      </div>
+
+      <!-- Modal: Nova Sessão -->
+      <div id="modalNovaSessao" aria-hidden="true" class="fixed inset-0 flex items-center hidden justify-center z-50 bg-slate-100">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-800">Nova Sessão de Suporte</h3>
+            <button class="text-gray-500 hover:text-gray-700" data-bs-dismiss="modal">&times;</button>
           </div>
-        </div>
 
-        <!-- MODAL -->
-
-        <div class="modal fade" id="meuModal" tabindex="-1" aria-labelledby="tituloModal" aria-hidden="true">
-          <div class="modal-dialog modal-xl ">
-            <div class="modal-content">
-              <div class="modal-header bg-info">
-                <h5 class="modal-title" id="tituloModal"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-              </div>
-              <div class="modal-body text-warning">
-                <div>
-                  <div class="mb-3">
-                    <label class="form-label text-primary fw-bold">Insira o título do chamado</label>
-                    <input v-model="sAcessoValues.descricao" type="text" class="form-control" placeholder="Necessito de ajuda com...">
-                  </div>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
-                <button type="submit" class="btn btn-success" data-bs-dismiss="modal"
-                  @click="NovaSessao()">Iniciar</button>
-              </div>
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Título do chamado</label>
+            <input
+              v-model="sAcessoValues.descricao"
+              type="text"
+              class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="Necessito de ajuda com..."
+            />
           </div>
-        </div>
 
-        <!-- Segundo Card -->
-        <div class="col-12 col-md-8 col-lg-6">
-          <div class="card bg-dark border-secondary h-100"> <!-- Added h-100 -->
-            <div class="card-body p-4 d-flex flex-column">
-              <h5 class="card-title mb-4 text-primary">Código existente</h5>
-              <form class="d-flex flex-column gap-3 flex-grow-1">
-                <div class="form-group">
-                  <input type="text" class="form-control bg-dark text-white border-secondary"
-                    placeholder="Insira um código de sessão" />
-                </div>
-                <div class="mt-auto"> <!-- Push button to bottom -->
-                  <button class="btn btn-outline-light w-100 py-2" type="submit">
-                    Acessar Sessão
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <!-- card do hub -->
-        <div class="col-12 col-md-8 col-lg-6">
-          <div class="card bg-dark border-secondary h-100"> <!-- Added h-100 -->
-            <div class="card-body p-4 d-flex flex-column">
-              <form class="d-flex flex-column gap-3 flex-grow-1">
-
-                <div class="mt-auto"> <!-- Push button to bottom -->
-                  <button class="btn btn-primary w-100 py-2" type="submit" @click="HubSuporte()">
-                    suportes em andamento
-                  </button>
-                </div>
-              </form>
-            </div>
+          <div class="flex justify-end space-x-2">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+              data-bs-dismiss="modal"
+            >
+              Fechar
+            </button>
+            <button
+              @click="NovaSessao()"
+              type="button"
+              class="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition"
+              data-bs-dismiss="modal"
+            >
+              Iniciar
+            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Card: Código existente -->
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-emerald-600">Código existente</h2>
+        <form @submit.prevent class="space-y-4">
+          <input
+            type="text"
+            class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            placeholder="Insira um código de sessão"
+          />
+          <button
+            type="submit"
+            class="w-full py-2 px-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition"
+          >
+            Acessar Sessão
+          </button>
+        </form>
+      </div>
+
+      <!-- Card: Ir para Hub de Suporte -->
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-emerald-600">Acompanhar suporte</h2>
+        <button
+          @click="HubSuporte"
+          class="w-full py-2 px-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition"
+        >
+          Suportes em andamento
+        </button>
+      </div>
+
+    </main>
   </div>
 </template>
