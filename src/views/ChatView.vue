@@ -113,47 +113,56 @@ watch(
 </script>
 
 <template>
-  <div class="container my-4">
-    <h4>O acesso do chamado é: {{ sAcesso }}</h4>
-    <div class="row my-2 mt-5">
-      <div class="col-md-12">
-        <div ref="chatContainer" class="border rounded overflow-auto" style="height: 60vh">
-          <!-- Mensagens dinâmicas -->
-          <div v-for="(chatMensagem, index) in arrMensagem" :key="index" class="row">
-            <div :class="['col-md-10 m-2', chatMensagem.nRemetente !== nRemetenteAtual ? '' : 'ms-auto']">
-              <div :class="['card mb-3', chatMensagem.nRemetente === nRemetenteAtual ? 'border-primary' : 'border-success']">
-                <div class="card-header">{{ chatMensagem.sNomeUsuario }}</div>
-                <div class="card-body" :class="chatMensagem.nRemetente === nRemetenteAtual ? 'text-primary' : 'text-success'">
-                  <p class="card-text">{{ chatMensagem.sTexto }}</p>
+  <div class="bg-slate-100 min-h-screen p-4">
+    <h4 class="text-gray-700 mb-4">
+      O acesso do chamado é:
+      <span class="font-semibold text-emerald-600">{{ sAcesso }}</span>
+    </h4>
 
-                   <small class="text-muted"> {{ chatMensagem.dDataEnvio.toDateString ?? 'Horário inválido' }}</small>
-                </div>
-              </div>
-            </div>
+    <div ref="chatContainer" class="bg-white rounded-2xl shadow-md p-4 overflow-auto h-[60vh]">
+      <div
+        v-for="(msg, idx) in arrMensagem"
+        :key="idx"
+        class="flex mb-4"
+        :class="msg.nRemetente === nRemetenteAtual ? 'justify-end' : ''"
+      >
+        <div
+          :class="[
+            'max-w-[80%] rounded-2xl p-4',
+            msg.nRemetente === nRemetenteAtual
+              ? 'bg-emerald-100 text-emerald-900 self-end'
+              : 'bg-gray-100 text-gray-800'
+          ]"
+        >
+          <div class="font-semibold mb-1">{{ msg.sNomeUsuario }}</div>
+          <p class="break-words">{{ msg.sTexto }}</p>
+          <div class="text-xs text-gray-500 mt-1">
+            {{ msg.dDataEnvio.toLocaleString() }}
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row my-5 align-items-center">
-      <div class="col-md-10">
-        <input
-          v-model="sNovaMensagem"
-          type="text"
-          class="form-control"
-          placeholder="digite a mensagem..."
-          @keyup.enter="EnviarMensagem"
-        >
-      </div>
-      <div class="col-md-2 d-flex gap-2">
-        <button
-          class="btn btn-primary flex-fill"
-          @click="EnviarMensagem"
-        >
-          Enviar
-        </button>
-        <button class="btn btn-secondary flex-fill">Anexo</button>
-      </div>
+    <!-- Input e botões responsivos -->
+    <div class="mt-4 flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+      <input
+        v-model="sNovaMensagem"
+        @keyup.enter="EnviarMensagem"
+        type="text"
+        placeholder="Digite a mensagem..."
+        class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+      />
+      <button
+        @click="EnviarMensagem"
+        class="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+      >
+        Enviar
+      </button>
+      <button
+        class="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+      >
+        Anexo
+      </button>
     </div>
   </div>
 </template>

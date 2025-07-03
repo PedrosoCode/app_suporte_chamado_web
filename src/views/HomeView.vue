@@ -9,7 +9,7 @@ const router = useRouter()
 
 const socket = io(import.meta.env.VITE_DEFAULT_API_LINK);
 
-
+const bModalNovaSessao = ref<boolean>(false)
 
 interface DecodedToken {
   jwt_nCodigoEmpresa: number
@@ -89,7 +89,7 @@ onMounted (() => {
       <!-- Card: Nova Sessão -->
       <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
         <h2 class="text-xl font-semibold text-emerald-600">Solicitar nova sessão</h2>
-        <button
+        <button @click="bModalNovaSessao = true"
           class="w-full py-2 px-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition"
           data-bs-toggle="modal"
           data-bs-target="#modalNovaSessao"
@@ -99,11 +99,11 @@ onMounted (() => {
       </div>
 
       <!-- Modal: Nova Sessão -->
-      <div id="modalNovaSessao" aria-hidden="true" class="fixed inset-0 flex items-center hidden justify-center z-50 bg-slate-100">
+      <div v-if="bModalNovaSessao === true" id="modalNovaSessao" aria-hidden="true" class="fixed inset-0 flex items-center justify-center z-50 bg-slate-100">
         <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-lg font-medium text-gray-800">Nova Sessão de Suporte</h3>
-            <button class="text-gray-500 hover:text-gray-700" data-bs-dismiss="modal">&times;</button>
+            <button @click="bModalNovaSessao = false" class="text-gray-500 p-1 hover:bg-red-500" data-bs-dismiss="modal">&times;</button>
           </div>
 
           <div>
@@ -118,6 +118,7 @@ onMounted (() => {
 
           <div class="flex justify-end space-x-2">
             <button
+              @click="bModalNovaSessao = false"
               type="button"
               class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
               data-bs-dismiss="modal"

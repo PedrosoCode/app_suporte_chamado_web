@@ -36,6 +36,8 @@ interface cboEmpresaState {
   codigo: number
 }
 
+const tabAtual = ref<'login' | 'cadastro'>('login')
+
 const cboEmpresaValues = ref<cboEmpresaState[]>([])
 
 const loginForm = reactive<LoginState>({ ...initLogin })
@@ -85,6 +87,10 @@ async function loadComboEmpresa() {
   }
 }
 
+function trocarTab() {
+  tabAtual.value = tabAtual.value === 'login' ? 'cadastro' : 'login'
+}
+
 onMounted(() => {
   loadComboEmpresa()
 })
@@ -99,12 +105,12 @@ onMounted(() => {
     <div class="max-w-md w-full mx-auto mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
       <!-- Abas de Login / Cadastro -->
       <div class="flex border-b">
-        <button type="button" class="flex-1 py-3 text-center font-medium transition-colors
+        <button @click="trocarTab()" type="button" class="flex-1 py-3 text-center font-medium transition-colors
                  bg-emerald-300 hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200
                  rounded-tl-2xl">
           Login
         </button>
-        <button type="button" class="flex-1 py-3 text-center font-medium transition-colors
+        <button @click="trocarTab()" type="button" class="flex-1 py-3 text-center font-medium transition-colors
                  bg-emerald-300 hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200
                  rounded-tr-2xl">
           Cadastro
@@ -114,7 +120,7 @@ onMounted(() => {
       <!-- Formulários -->
       <div class="p-6 space-y-6">
         <!-- Login -->
-        <section id="home" role="tabpanel" aria-labelledby="login-tab" class="space-y-4">
+        <section v-if="tabAtual == 'login'" id="home" role="tabpanel" aria-labelledby="login-tab" class="space-y-4">
           <div class="space-y-2">
             <label for="loginUserName" class="block text-sm font-medium text-gray-700">Usuário</label>
             <input v-model="loginForm.sNomeUsuario" id="loginUserName" type="text" placeholder="Seu usuário"
@@ -145,7 +151,7 @@ onMounted(() => {
         </section>
 
         <!-- Cadastro -->
-        <section id="profile" role="tabpanel" aria-labelledby="cadastro-tab" class="space-y-4">
+        <section v-if="tabAtual == 'cadastro'" id="profile" role="tabpanel" aria-labelledby="cadastro-tab" class="space-y-4">
           <div class="space-y-2">
             <label for="registerNomeUsuario" class="block text-sm font-medium text-gray-700">Nome de usuário</label>
             <input v-model="registerForm.sNomeUsuario" id="registerNomeUsuario" type="text" placeholder="Seu usuário"
