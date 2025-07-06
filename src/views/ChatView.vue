@@ -7,11 +7,11 @@ import axios from 'axios'
 
 const route = useRoute()
 
-const nRemetenteAtual : number = parseInt(route.params.remetente)
-const sAcesso: string = String(route.params.acesso ?? '')
+const nRemetenteAtual = parseInt(String(route.params.remetente))
+const sAcesso = String(route.params.acesso ?? '')
 
-const token : any = localStorage.getItem('jwtToken')
-const decodedToken : any = jwtDecode(token)
+const token = localStorage.getItem('jwtToken') || ''
+const decodedToken: any = token ? jwtDecode(token) : {}
 
 interface interMessage {
   nRemetente: number
@@ -19,66 +19,56 @@ interface interMessage {
   dDataEnvio: Date
   nCodigoChat: number
   nCodigoEmpresa: number
-  sNomeUsuario : string
+  sNomeUsuario: string
 }
 
 const arrMensagem = ref<interMessage[]>([])
-const sNovaMensagem = ref('')
-const socket = ref<Socket | null>(null)
+const sNovaMensagem = ref<string>('')
+let socket: Socket | null = null
 
-const setupSocketIO = () => {
-  socket.value = io(`${import.meta.env.VITE_DEFAULT_API_LINK}/chat`, {
-    auth: {
-      token: `Bearer ${token}`
-    },
-    query: {
-      acesso: sAcesso
+function setupSocketIO() {
+  socket = io(
+    `${import.meta.env.VITE_DEFAULT_API_LINK}/chat`,
+    {
+      auth: { token: `Bearer ${token}` }
     }
-  });
-
-  // Ouvinte para mensagens do chat específico
-  socket.value.on('chat:receber', (dadosBrutos: interMessage) => {
+  )
+  socket.on('connect', () => {
+    // Entra na sala de chat específica
+    socket?.emit('joinRoom', sAcesso)
+  })
+  socket.on('chat:receber', (dados: interMessage) => {
     arrMensagem.value.push({
-      ...dadosBrutos,
-      dDataEnvio: new Date(dadosBrutos.dDataEnvio)
-    });
-  });
+      ...dados,
+      dDataEnvio: new Date(dados.dDataEnvio)
+    })
+  })
 }
 
-const EnviarMensagem = () => {
-  if (!sNovaMensagem.value.trim() || !socket.value) return
-
-  const jsMensagem: interMessage = {
-    nRemetente: parseInt(nRemetenteAtual),
+function EnviarMensagem() {
+  if (!sNovaMensagem.value.trim() || !socket) return
+  const msg = {
+    nRemetente: nRemetenteAtual,
     sTexto: sNovaMensagem.value,
     dDataEnvio: new Date(),
     nCodigoChat: parseInt(sAcesso),
     nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa
   }
-
-  socket.value.emit('chat:enviar', jsMensagem)
+  socket.emit('chat:enviar', msg)
   sNovaMensagem.value = ''
 }
 
 async function LoadMensagens() {
-
   try {
-
     const response = await axios.post(
-      import.meta.env.VITE_DEFAULT_API_LINK + '/chat/carregar',
-      { nCodigoChat: parseInt(sAcesso),
-        nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa
-       },
+      `${import.meta.env.VITE_DEFAULT_API_LINK}/chat/carregar`,
+      { nCodigoChat: parseInt(sAcesso), nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa },
       { headers: { Authorization: `Bearer ${token}` } }
     )
-
-    arrMensagem.value = response.data
-    console.log('Dados recebidos:', arrMensagem.value)
-
+    arrMensagem.value = response.data.map((m: any) => ({ ...m, dDataEnvio: new Date(m.dDataEnvio) }))
   } catch (error) {
-    console.error('Erro ao carregar mensagens inicialmente:', error)
+    console.error('Erro ao carregar mensagens:', error)
   }
-
 }
 
 onMounted(() => {
@@ -87,29 +77,19 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (socket.value) {
-    socket.value.disconnect()
-  }
+  socket?.disconnect()
 })
 
 const chatContainer = ref<HTMLElement | null>(null)
 
-// Watch para detectar mudanças nas mensagens
 watch(
   () => arrMensagem.value.length,
   async () => {
-    await nextTick() // Espera a atualização do DOM
-    if (chatContainer.value) {
-      // Scroll suave para o final
-      chatContainer.value.scrollTo({
-        top: chatContainer.value.scrollHeight,
-        behavior: 'smooth'
-      })
-    }
+    await nextTick()
+    chatContainer.value?.scrollTo({ top: chatContainer.value.scrollHeight, behavior: 'smooth' })
   },
-  { flush: 'post' } // Executa após a atualização do DOM
+  { flush: 'post' }
 )
-
 </script>
 
 <template>
@@ -143,7 +123,6 @@ watch(
       </div>
     </div>
 
-    <!-- Input e botões responsivos -->
     <div class="mt-4 flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
       <input
         v-model="sNovaMensagem"
