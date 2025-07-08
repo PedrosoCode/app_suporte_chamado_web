@@ -17,60 +17,68 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       component: HomeView,
-      meta: { requiresAuth: true },
+      meta: { requerLogin: true },
     },
     {
       path: '/nova_sessao/acesso/:acesso/remetente/:remetente/empresa/:empresa',
       name: 'nova_sessao',
       component: ChatView,
-      meta: { requiresAuth: true },
+      meta: { requerLogin: true },
     },
     {
       path: '/suporte_hub',
       name: 'suporte_hub',
       component: SuporteHub,
-      meta: { requiresAuth: true },
+      // meta: { requerLogin: true, requerUsuarioSuporte : true },
+      meta: { requerLogin: true },
     },
     {
       path: '/anexo',
       name: 'anexo',
       component: AnexoView,
-      meta: { requiresAuth: true },
+      meta: { requerLogin: true },
     },
   ],
 })
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('jwtToken')
+  const token: string | null = localStorage.getItem('jwtToken')
+  let tokenPayload: any = null
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!token) {
-      next({ name: 'login' })
-    } else {
-      const isExpired = checkTokenExpiration(token)
-      if (isExpired) {
-        localStorage.removeItem('jwtToken')
-        next({ name: 'login' })
-      } else {
-        next()
-      }
+  if (token) {
+    try {
+      tokenPayload = JSON.parse(atob(token.split('.')[1]))
+    } catch (error) {
+      // Token inválido
+      localStorage.removeItem('jwtToken')
+      return next({ name: 'login' }) 
     }
-  } else {
-    next()
+
+    const isExpired = Date.now() > tokenPayload.exp * 1000
+    if (isExpired) {
+      localStorage.removeItem('jwtToken')
+      return next({ name: 'login' }) 
+    }
   }
+
+  // Caso a rota exija login
+  if (to.matched.some(record => record.meta.requerLogin)) {
+    if (!token) {
+      return next({ name: 'login' }) 
+    }
+  }
+
+  // Caso exija perfil de suporte
+  if (to.matched.some(record => record.meta.requerUsuarioSuporte)) {
+    if (tokenPayload.jwt_bPrestaSuporte == true) {
+      return next() 
+    } else {
+      return next({ name: 'home' }) 
+    }
+  }
+
+  next() 
 })
-
-function checkTokenExpiration(token : any) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    const exp = payload.exp * 1000
-    return Date.now() > exp
-  } catch (error) {
-    return true
-  }
-}
-
-
 
 
 export default router

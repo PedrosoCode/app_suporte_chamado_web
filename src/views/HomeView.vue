@@ -20,6 +20,7 @@ interface cboEmpresaState {
 interface DecodedToken {
   jwt_nCodigoEmpresa: number
   jwt_nCodigoUsuario: number
+  jwt_bPrestaSuporte: boolean
 }
 
 const initAcesso: sAcessoChamado = {
