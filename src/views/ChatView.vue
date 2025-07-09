@@ -9,6 +9,7 @@ const route = useRoute()
 
 const nRemetenteAtual = parseInt(String(route.params.remetente))
 const sAcesso = String(route.params.acesso ?? '')
+const nCodigoEmpresaChat = String(route.params.empresa ?? '')
 
 const token = localStorage.getItem('jwtToken') || ''
 const decodedToken: any = token ? jwtDecode(token) : {}
@@ -18,7 +19,8 @@ interface interMessage {
   sTexto: string
   dDataEnvio: Date
   nCodigoChat: number
-  nCodigoEmpresa: number
+  nCodigoEmpresaChat: number
+  nCodigoEmpresaRemetente: number
   sNomeUsuario: string
 }
 
@@ -52,7 +54,8 @@ function EnviarMensagem() {
     sTexto: sNovaMensagem.value,
     dDataEnvio: new Date(),
     nCodigoChat: parseInt(sAcesso),
-    nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa
+    nCodigoEmpresaChat: parseInt(nCodigoEmpresaChat),
+    nCodigoEmpresaRemetente: decodedToken.jwt_nCodigoEmpresa
   }
   socket.emit('chat:enviar', msg)
   sNovaMensagem.value = ''
@@ -62,7 +65,7 @@ async function LoadMensagens() {
   try {
     const response = await axios.post(
       `${import.meta.env.VITE_DEFAULT_API_LINK}/chat/carregar`,
-      { nCodigoChat: parseInt(sAcesso), nCodigoEmpresa: decodedToken.jwt_nCodigoEmpresa },
+      { nCodigoChat: parseInt(sAcesso), nCodigoEmpresa: parseInt(nCodigoEmpresaChat) },
       { headers: { Authorization: `Bearer ${token}` } }
     )
     arrMensagem.value = response.data.map((m: any) => ({ ...m, dDataEnvio: new Date(m.dDataEnvio) }))
@@ -100,20 +103,18 @@ watch(
     </h4>
 
     <div ref="chatContainer" class="bg-white rounded-2xl shadow-md p-4 overflow-auto h-[60vh]">
-      <div
-        v-for="(msg, idx) in arrMensagem"
-        :key="idx"
-        class="flex mb-4"
-        :class="msg.nRemetente === nRemetenteAtual ? 'justify-end' : ''"
-      >
-        <div
-          :class="[
-            'max-w-[80%] rounded-2xl p-4',
-            msg.nRemetente === nRemetenteAtual
-              ? 'bg-emerald-100 text-emerald-900 self-end'
-              : 'bg-gray-100 text-gray-800'
-          ]"
-        >
+      <div v-for="(msg, idx) in arrMensagem" :key="idx" class="flex mb-4" :class="{
+        'justify-end':
+          msg.nRemetente === nRemetenteAtual &&
+          msg.nCodigoEmpresaRemetente === decodedToken.jwt_nCodigoEmpresa
+      }">
+        <div :class="[
+          'max-w-[80%] rounded-2xl p-4',
+          msg.nRemetente === nRemetenteAtual &&
+            msg.nCodigoEmpresaRemetente === decodedToken.jwt_nCodigoEmpresa
+            ? 'bg-emerald-100 text-emerald-900 self-end'
+            : 'bg-gray-100 text-gray-800'
+        ]">
           <div class="font-semibold mb-1">{{ msg.sNomeUsuario }}</div>
           <p class="break-words">{{ msg.sTexto }}</p>
           <div class="text-xs text-gray-500 mt-1">
@@ -124,22 +125,13 @@ watch(
     </div>
 
     <div class="mt-4 flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
-      <input
-        v-model="sNovaMensagem"
-        @keyup.enter="EnviarMensagem"
-        type="text"
-        placeholder="Digite a mensagem..."
-        class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-      />
-      <button
-        @click="EnviarMensagem"
-        class="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
-      >
+      <input v-model="sNovaMensagem" @keyup.enter="EnviarMensagem" type="text" placeholder="Digite a mensagem..."
+        class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400" />
+      <button @click="EnviarMensagem"
+        class="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition">
         Enviar
       </button>
-      <button
-        class="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
-      >
+      <button class="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
         Anexo
       </button>
     </div>

@@ -4,6 +4,7 @@ import ChatView from '../views/ChatView.vue'
 import SuporteHub from '../views/suporteHub.vue'
 import LoginView from '../views/LoginView.vue'
 import AnexoView from '@/views/AnexoView.vue'
+import GrupoExibicaoView from '@/views/GrupoExibicaoView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/anexo',
       name: 'anexo',
       component: AnexoView,
+      meta: { requerLogin: true },
+    },
+    {
+      path: '/grupo_exibicao',
+      name: 'grupo_exibicao',
+      component: GrupoExibicaoView,
       meta: { requerLogin: true },
     },
   ],

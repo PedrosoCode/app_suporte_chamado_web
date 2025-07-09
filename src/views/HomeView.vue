@@ -31,6 +31,8 @@ interface sAcessoChamado {
   descricao: string
 }
 
+const inputAcesso = ref<string>('')
+
 const sAcessoValues = reactive<sAcessoChamado>({ ...initAcesso })
 const cboEmpresaValues = ref<cboEmpresaState[]>([])
 const empresaSelecionada = ref<number>(0)
@@ -75,6 +77,19 @@ async function NovaSessao() {
       empresa: decodedToken.value.jwt_nCodigoEmpresa.toString(),
       remetente: decodedToken.value.jwt_nCodigoUsuario.toString(),
       acesso: sAcessoValues.descricao
+    }
+  })
+}
+
+
+function acessarSessao() {
+
+  router.push({
+    name: 'nova_sessao',
+    params: {
+      acesso: inputAcesso.value,
+      remetente: decodedToken.value?.jwt_nCodigoUsuario.toString(),
+      empresa: empresaSelecionada.value
     }
   })
 }
@@ -156,7 +171,7 @@ onMounted(() => {
       <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
         <h2 class="text-xl font-semibold text-emerald-600">Código existente</h2>
         <form @submit.prevent class="space-y-4">
-          <input type="text"
+          <input v-model="inputAcesso" type="text"
             class="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             placeholder="Insira um código de sessão" />
           <div class="space-y-2">
@@ -170,7 +185,7 @@ onMounted(() => {
             </select>
           </div>
 
-          <button type="submit"
+          <button @click="acessarSessao()"
             class="w-full py-2 px-4 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition">
             Acessar Sessão
           </button>
