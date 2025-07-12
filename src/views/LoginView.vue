@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 // import MainNavbar from '@/components/MainNavbar.vue'
 import axios from 'axios'
 import { onMounted } from 'vue'
+import router from '@/router'
 
 const initCadastro: CadastroState = {
   sNomeUsuario: '',
@@ -53,7 +54,8 @@ function btnLogarClick() {
     .then((response) => {
       localStorage.setItem('jwtToken', response.data.token)
 
-      window.location.href = '/'
+      // window.location.href = '/'
+      router.push("home")
     })
     .catch((error) => {
       console.log(error)

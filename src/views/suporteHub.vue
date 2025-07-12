@@ -1,12 +1,29 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import router from "@/router";
 import { ref } from "vue";
 import axios from "axios";
 import { onMounted } from "vue";
+import { jwtDecode } from "jwt-decode";
 
-// const router = useRouter()
+interface DecodedToken {
+  jwt_nCodigoEmpresa: number
+  jwt_nCodigoUsuario: number
+  jwt_bPrestaSuporte: boolean
+}
 
-const token = localStorage.getItem("jwtToken");
+const token = localStorage.getItem('jwtToken')
+const decodedToken = ref<DecodedToken | null>(null)
+
+if (token) {
+  try {
+    decodedToken.value = jwtDecode<DecodedToken>(token)
+  } catch (error) {
+    console.error('Erro ao decodificar token:', error)
+  }
+} else {
+  console.warn('Token JWT não encontrado no localStorage')
+}
 
 interface interChamado {
   nCodigoEmpresa: number;
@@ -33,6 +50,18 @@ async function getListaParceiros() {
   }
 }
 
+function acessarSessao(nAcesso : number, nEmpresa : number) {
+
+  router.push({
+    name: 'nova_sessao',
+    params: {
+      acesso: nAcesso,
+      remetente: decodedToken.value?.jwt_nCodigoUsuario,
+      empresa: nEmpresa
+    }
+  })
+}
+
 onMounted(() => {
   getListaParceiros();
 });
@@ -47,7 +76,7 @@ onMounted(() => {
         <div v-for="suportes in dadoChamados" :key="suportes.nCodigoAcesso"
           class="flex flex-col md:flex-row bg-white rounded-2xl shadow-md overflow-hidden hover:outline-emerald-400 hover:outline-6 transition-transform duration-200 hover:translate-3 hover:rotate-z-1 hover:skew-x-1 ">
           <!-- Card principal -->
-          <div class="md:w-10/12 border-r">
+          <div @click="acessarSessao(suportes.nCodigoAcesso, suportes.nCodigoEmpresa)" class="md:w-10/12 border-r cursor-pointer">
             <div class="border-b px-6 py-4 bg-emerald-100 text-emerald-800 font-semibold">
               {{ suportes.sNomeEmpresa }}
             </div>
