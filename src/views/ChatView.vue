@@ -32,13 +32,14 @@ function setupSocketIO() {
   socket = io(
     `${import.meta.env.VITE_DEFAULT_API_LINK}/chat`,
     {
-      auth: { token: `Bearer ${token}` }
+      auth: { token: `Bearer ${token}` },
+      query: {
+        acesso: sAcesso,
+        empresa_chat: nCodigoEmpresaChat
+      }
     }
-  )
-  socket.on('connect', () => {
-    // Entra na sala de chat específica
-    socket?.emit('joinRoom', sAcesso)
-  })
+  );
+
   socket.on('chat:receber', (dados: interMessage) => {
     arrMensagem.value.push({
       ...dados,
